@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Editor Page | ComicBuzz</title>
+    <!-- core CSS -->
+    <link rel="stylesheet" href="/css/dropzone.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css1/fileinput.min.css" media="all" rel="stylesheet" type="text/css" />
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/prettyPhoto.css" rel="stylesheet">
+    <link href="/css/jquery.tagsinput.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
+    <link href="/css/responsive.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/dropzone.js"></script>     
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+    <script src="/js1/plugins/canvas-to-blob.min.js" type="text/javascript"></script>
+    <script src="/js1/fileinput.min.js" type="text/javascript"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/js/jquery.prettyPhoto.js"></script>
+    <script src="/js/jquery.isotope.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/wow.min.js"></script>
+    <script src="/js/jquery.tagsinput.min.js"></script>
+    <script type="text/javascript">
+    Dropzone.options.yourDropzone = 
+    {
+        
+         // The configuration we've talked about above
+  autoProcessQueue: false,
+  uploadMultiple: true,
+  parallelUploads: 100,
+  maxFiles: 100,
+        
+        init: function()
+        {
+            var yourDropzone = this;
+
+        // for Dropzone to process the queue (instead of default form behavior):
+        document.getElementById("submit-all").addEventListener("click", function(e) {
+               // Make sure that the form isn't actually being sent.
+      e.preventDefault();
+      e.stopPropagation();
+      yourDropzone.processQueue();
+        });
+
+    }
+    };
+        
+        
+  
+ 
+    </script>
+    <!--[if lt IE 9]>
+    <script src="../js/html5shiv.js"></script>
+    <script src="../js/respond.min.js"></script>
+    <![endif]-->       
+    <link rel="shortcut icon" href="/images/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
+</head><!--/head-->
+<body>
+
+       <header id="header">
+        <div class="top-bar">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6 col-xs-4">
+                        <div class="top-number"><p><i class="fa fa-phone-square"></i>778 867 5309</p></div>
+                    </div>
+                    <div class="col-sm-6 col-xs-8">
+                       <div class="social">
+                            <ul class="social-share">
+                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li> 
+                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+                                <li><a href="#"><i class="fa fa-skype"></i></a></li>
+                            </ul>
+
+   
+              <form name="searchForm" action="/comics/search" method="post">
+             <p><input type="search" name="content" placeholder="Search">
+            <input type="submit" value="Search"></p>
+            </form>  
+                       </div>
+                    </div>
+                </div>
+            </div><!--/.container-->
+        </div><!--/.top-bar-->
+
+        <nav class="navbar navbar-inverse" role="banner">
+            <div class="container">
+                <div class="navbar-header">
+                    <!--<form>
+                                <input type="text" placeholder="Search..." required>
+                                <input type="button" value="Search">
+                    </form>-->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/"><img src="/images/logo.png" alt="logo"></a>
+                </div>
+				
+                <div class="collapse navbar-collapse navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/index">Home</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/topcomics">Recent Comics</a></li>
+                        
+                        <!--<li><a href="/tagsearch">Tags</a></li>-->
+                        
+                        
+                        <!-- <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <i class="fa fa-angle-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/usercomics">My Comics</a></li>                               
+                                <li><a href="/settings">Account Settings</a></li>
+                            </ul>
+                        </li>-->
+                        
+                        <li><a href="/userlist">Userlist</a></li>                        
+                        
+                        {% if (req.isAuthenticated()) %}
+                        <li class="{% if (isActive('/users/' + req.user.id )) %}active{% endif %}">
+                            <a href="{{ '/users/' + req.user.id }}" title="{{ req.user.username }}">Hello, {{req.user.username}}</a>
+                        </li>
+                        <li><a href="/upload">Upload</a></li>
+                        <li>
+                            <a href="/logout" title="logout">Logout</a>
+                        </li>
+                        {% else %}
+                        <li class="{% if (isActive('/login')) %}active{% endif %}">
+                            <a href="/login" title="Login">Login</a>
+                        </li>
+                        {% endif %}
+                             
+                    </ul>
+                </div>
+            </div><!--/.container-->
+        </nav><!--/nav-->
+		
+    </header><!--/header--> 
+      
+        
+<div>
+        <body>
+            <div class="comic-img col-md-12" align="center">
+                    <div id="images">
+                        {% for image in myCells %}
+                        <img src="{{image.ImageURL}}" width= "500"></img>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="comic-description" align = "center">
+                        <br>
+                        <br>
+                        <p id="Description"><h3>Description:</h3>{{ article.body }}</p>
+                </div>
+                <br>
+                <div class="comic-tags" align = "center">
+                    <h3>Tags:</h3>
+                        {% if (article.tags) %}
+                            <p>
+                                <!--Tags: &nbsp;-->
+                                {% for tag in article.tags.split(',') %}
+                                <i class="muted fa fa-tag"></i>&nbsp;
+                                <a href="{{ '/tags/' + tag }}" class="tag">{{ tag }}</a>
+                                &nbsp;&nbsp;
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+                </div>
+                
+                <!--<div class="comic-img col-md-12" align="center">
+                    <div id="contributors">
+                        <p id="Contributors"><h3>Contributors to the comic:</h3>
+                        {{myContributors}}
+                        {% for contributor in myContributors %}
+                        {{ contributor.username }}
+                        {% endfor %}
+
+                        </p>
+                        
+                    </div>
+                </div>-->
+                <br>
+                <br>
+                            
+
+        <div align ="center">
+            <form name="reorderForm" action="{{ '/testpage/' + article.id +'/edit' }}" method="POST">
+            <fieldset>
+            <legend>Reorder Cells</legend>
+            
+             <p>Move this comic cell: <input type="text" name="num1" placeholder="original position">
+            to this position: <input type="text" name="num2" placeholder="destination"><br><br>
+            
+            {% if article.published == 1  %} 
+            <input type="submit" value="Update my comic!" button ></p>
+            {% endif %}
+            {% if article.published == 2  %}
+            <button id = "button2" class="btn btn-success disabled " onclick="myFunction()">Published</button>
+            <script>
+            function myFunction() {
+                alert("Sorry, you can't edit a published comic :( ");}
+            </script>
+            {% endif %}
+            </fieldset>
+
+            <br>
+            
+            </form>  
+        </div>
+        <br>
+        <br>
+        <div align ="center">
+            <form name="contributorForm" action="{{ '/testpage/' + article.id +'/edit2' }}" method="POST">
+            <fieldset>
+                <legend> Collaborate with Other Users! </legend>
+            <p> Want to collaborate? Add a user to contribute to the draft comic </p>
+            <p>Add new contributor:<input type="text" name="newContributor" placeholder="Username"></p>
+            <input type="submit" value="Add contributor!" onclick ="confirmMsg()"></p>
+            <script>
+            function confirmMsg() {
+                alert("Successfully add.");}
+            </script>
+            </fieldset>
+            </form>
+        </div>
+        </div>
+
+<br>
+<br>
+
+    <fieldset>
+        
+        <legend align = "center"> Add a cell </legend>
+        <br>
+        <p> Select another image to add to current comic: </p>
+                <form action="{{ '/testpage/' + article.id +'/edit3' }}" enctype="multipart/form-data" method="POST" id="yourDropzone" class="dropzone">
+                 <div id="dropzonePreview"></div>
+    <button type="submit" name="submit-all" id="submit-all"> Upload </button>
+</form>
+        
+        
+    </fieldset>
+        
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+<section id="bottom">
+        <div class="container wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms">
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About us</a></li>
+                            <li><a href="#">Meet the team</a></li>
+                            <li><a href="#">Copyright</a></li>
+                            <li><a href="#">Terms of use</a></li>
+                            <li><a href="#">Privacy policy</a></li>
+                            <li><a href="#">Contact us</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="#">Faq</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Forum</a></li>
+                            <li><a href="#">Documentation</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Developers</h3>
+                        <ul>
+                            <li><a href="#">Web Development</a></li>
+                            <li><a href="#">Theme</a></li>
+                            <li><a href="#">Development</a></li>
+                            <li><a href="#">Plugin Development</a></li>
+                            <li><a href="#">Article Writing</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">                   
+                </div><!--/.col-md-3-->
+            </div>
+        </div>
+    </section><!--/#bottom-->
+
+    <footer id="footer" class="midnight-blue">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    &copy; 2016 <a target="_blank" href="http://comicbuzz.com/" title="Create some comics">ComicBuzz</a>. All Rights Reserved.
+                </div>
+                <div class="col-sm-6">
+                    <ul class="pull-right">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Faq</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer><!--/#footer-->
+
+    
+    <script></script>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.prettyPhoto.js"></script>
+    <script src="/js/jquery.isotope.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/wow.min.js"></script>
+
+
+       
+       
+    
+</body>
+
+</html>

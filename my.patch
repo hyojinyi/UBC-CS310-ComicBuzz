@@ -1,0 +1,1937 @@
+diff --git a/src/config/routes.js b/src/config/routes.js
+index 63f75e0..8ffc331 100644
+--- a/src/config/routes.js
++++ b/src/config/routes.js
+@@ -61,7 +61,7 @@ module.exports = function (passport) {
+     router.param('id', articles.load);
+     router.get('/comics/:id', articles.show);
+     router.post('/comics/:id/publish', articles.publish);
+-    //router.get('/comics/:id',articles.publish);
++    router.get('/comics/:id', articles.publish);
+     // usercomic routes 
+     router.get('/usercomics', articles.showmycomics);
+     //TEST
+diff --git a/src/config/routes.ts b/src/config/routes.ts
+index 209ad9a..05281d6 100644
+--- a/src/config/routes.ts
++++ b/src/config/routes.ts
+@@ -85,7 +85,7 @@ module.exports = function (passport)
+   router.param('id', articles.load);
+   router.get('/comics/:id', articles.show);
+   router.post('/comics/:id/publish',articles.publish);
+-  //router.get('/comics/:id',articles.publish);
++  router.get('/comics/:id',articles.publish);
+   // usercomic routes 
+   router.get('/usercomics',articles.showmycomics);
+   //TEST
+diff --git a/src/controllers/articles.js b/src/controllers/articles.js
+index 70ad84f..ab13f68 100644
+--- a/src/controllers/articles.js
++++ b/src/controllers/articles.js
+@@ -33,10 +33,8 @@ exports.index = wrap(function* (req, res) {
+     var page = (req.query.page > 0 ? req.query.page : 1) - 1;
+     // Set a variable limit for how many articles to query for a page
+     var limit = 30;
+-    // var criteria ='';
+     // Set a variable options that has the limit and the page
+     var options = {
+-        //criteria: criteria,
+         // Set limit to the limit described above
+         limit: limit,
+         // Set the page variable of options to the one described above
+@@ -60,30 +58,21 @@ exports.index = wrap(function* (req, res) {
+ });
+ exports.topcomics = wrap(function* (req, res) {
+     var options = {
+-        // change query condition to only published
+-        criteria: { published: '2' },
+-        page: 0,
++        limit: 12,
++        page: 0
+     };
+-    var test_op = {
+-        // change query condition to only published
+-        page: 0,
+-    };
+-    var article1 = yield Article1.list(test_op);
+-    console.log('*****************************');
+-    console.log('*****************************');
+-    console.log('*****************************');
+-    console.log('article1 is :' + article1);
+-    console.log('*****************************');
+-    console.log('*****************************');
+-    console.log('*****************************');
+     var articles = yield Article1.list(options);
+-    console.log('*****************************');
+-    console.log('*****************************');
+-    console.log('*****************************');
+     console.log(articles);
+-    console.log('*****************************');
+-    console.log('*****************************');
+-    console.log('*****************************');
++    for (var j = 0; j < articles.length; j++) {
++        for (var i = 0; i < articles[j].cells.length; i++) {
++            var URL_ = articles[j].cells[i].ImageURL;
++            var splitted = URL_.split('/');
++            //console.log('splitted is:'+splitted);
++            var _URL = '/' + splitted[2] + '/' + splitted[3];
++            //console.log('_URL is: '+_URL);
++            articles[j].cells[i].ImageURL = _URL;
++        }
++    }
+     res.render('topcomics', {
+         comics: articles
+     });
+@@ -160,32 +149,8 @@ exports.show = function (req, res) {
+ };
+ exports.publish = function (req, res) {
+     console.log('Enter publish at articles');
+-    var new_id = req.article._id;
+     var article_ = req.article;
+-    //     Article1.findOne( _id :new_id, function (err, doc){
+-    //   // doc is a Document
+-    //    console.log("____________________________________"); 
+-    //    console.log("                                    ");  
+-    //    console.log("                                    "); 
+-    //    console.log("                                    ");  
+-    //    console.log("                                    ");     
+-    //    console.log("                                     article   is   "+ doc);
+-    //    console.log("                                    ");  
+-    //    console.log("                                    "); 
+-    //    console.log("                                    ");  
+-    //    console.log("                                    "); 
+-    //     });
+-    console.log("____________________________________");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                     article_   is" + article_);
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    // var images = req.article.cells;
++    var images = req.article.cells;
+     //console.log();
+     console.log('article is:' + article_);
+     //console.log('article :'+article);
+@@ -193,16 +158,7 @@ exports.publish = function (req, res) {
+     article_.publish();
+     console.log('After book being published' + article_.published);
+     var images = article_.cells;
+-    //onsole.log('images are :'+images);
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                     article_   is" + article_);
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
+-    console.log("                                    ");
++    console.log('images are :' + images);
+     res.render('comics', {
+         title: article_.title,
+         article: article_,
+@@ -226,22 +182,18 @@ exports.destroy = wrap(function* (req, res) {
+  */
+ exports.showmycomics = wrap(function* (req, res) {
+     console.log('articles:showmycomics');
+-    //console.log('req.user is:'+req.user);
++    console.log('req.user is:' + req.user);
+     console.log('req.user.username is:' + req.user.username);
+     console.log('req.user._id is:' + req.user._id);
+-    Article1.find({ 'user': req.user._id, published: 1 }, function (err, unpublished_articles) {
++    Article1.find({ 'user': req.user._id, published: 1 }, function (err, unpulished_articles) {
+         if (err) {
+             console.log('error in find one!!!!!!!!!!!!!!!!!!!!!!!');
+         }
+-        Article1.find({ 'user': req.user._id, published: 2 }, function (err, published_articles) {
++        Article1.find({ 'user': req.user._id, published: 2 }, function (err, pulished_articles) {
+             if (err) {
+                 console.log('error in find one!!!!!!!!!!!!!!!!!!!!!!!');
+             }
+-            console.log('test\nline 2\nline 3\nline4');
+-            console.log('published_articles   :' + published_articles);
+-            console.log('test\nline 2\nline 3\nline4');
+-            console.log('unpulished_articles' + unpublished_articles);
+-            res.render('usercomics', { unpublished_articles: unpublished_articles, pulished_articles: published_articles });
++            res.render('usercomics', { unpulished_articles: unpulished_articles, pulished_articles: pulished_articles });
+         });
+     });
+ });
+diff --git a/src/controllers/articles.ts b/src/controllers/articles.ts
+index db84879..a78f513 100644
+--- a/src/controllers/articles.ts
++++ b/src/controllers/articles.ts
+@@ -47,15 +47,11 @@ exports.index = wrap(function* (req, res)
+     
+     // Set a variable limit for how many articles to query for a page
+     var limit = 30;
+-   // var criteria ='';
+-    
+     
+     // Set a variable options that has the limit and the page
+     var options = 
+     {
+-        //criteria: criteria,
+         // Set limit to the limit described above
+-        
+         limit: limit,
+         // Set the page variable of options to the one described above
+         page: page
+@@ -84,37 +80,21 @@ exports.index = wrap(function* (req, res)
+ exports.topcomics = wrap(function* (req, res) 
+ {
+   var options = {
+-      // change query condition to only published
+-      criteria :{published: '2'},
+-      
+-      
+-      page: 0,
+-  };
+-    var test_op = {
+-      // change query condition to only published
+-      
+-      
+-      
+-      page: 0,
++      limit: 12,
++      page: 0
+   };
+-  var article1 = yield Article1.list(test_op);
+-  console.log('*****************************');
+-  console.log('*****************************');
+-  console.log('*****************************');
+-  console.log('article1 is :'+article1);
+-  console.log('*****************************');
+-  console.log('*****************************');
+-  console.log('*****************************');
+   var articles = yield Article1.list(options);
+-  
+-  console.log('*****************************');
+-  console.log('*****************************');
+-  console.log('*****************************');
+   console.log(articles);
+-  console.log('*****************************');
+-  console.log('*****************************');
+-  console.log('*****************************');
+-
++  for (var j =0;j<articles.length;j++){
++           for (var i =0; i < articles[j].cells.length;i++ ){
++            var URL_ = articles[j].cells[i].ImageURL;
++            var splitted = URL_.split('/');
++            //console.log('splitted is:'+splitted);
++            var _URL = '/'+splitted[2]+'/'+splitted[3];
++            //console.log('_URL is: '+_URL);
++            articles[j].cells[i].ImageURL = _URL;
++        }
++  }
+ 
+   res.render('topcomics', {
+       comics: articles
+@@ -214,32 +194,9 @@ exports.show = function (req, res){
+ 
+ exports.publish = function (req,res){
+     console.log('Enter publish at articles');
+-    var new_id = req.article._id;
++    
+     var article_ = req.article; 
+-//     Article1.findOne( _id :new_id, function (err, doc){
+-//   // doc is a Document
+-//    console.log("____________________________________"); 
+-//    console.log("                                    ");  
+-//    console.log("                                    "); 
+-//    console.log("                                    ");  
+-//    console.log("                                    ");     
+-//    console.log("                                     article   is   "+ doc);
+-//    console.log("                                    ");  
+-//    console.log("                                    "); 
+-//    console.log("                                    ");  
+-//    console.log("                                    "); 
+-//     });
+-   console.log("____________________________________"); 
+-   console.log("                                    ");  
+-   console.log("                                    "); 
+-   console.log("                                    ");  
+-   console.log("                                    ");     
+-   console.log("                                     article_   is"+ article_);
+-   console.log("                                    ");  
+-   console.log("                                    "); 
+-   console.log("                                    ");  
+-   console.log("                                    "); 
+-   // var images = req.article.cells;
++    var images = req.article.cells;
+     //console.log();
+     console.log('article is:'+article_);
+     
+@@ -248,16 +205,9 @@ exports.publish = function (req,res){
+     article_.publish();
+     console.log('After book being published'+article_.published);
+         var images = article_.cells;
+-        //onsole.log('images are :'+images);
+-   console.log("                                    ");  
+-   console.log("                                    "); 
+-   console.log("                                    ");  
+-   console.log("                                    ");     
+-   console.log("                                     article_   is"+ article_);
+-   console.log("                                    ");  
+-   console.log("                                    "); 
+-   console.log("                                    ");  
+-   console.log("                                    ");  
++        console.log('images are :'+images);
++        
++    
+     res.render('comics', {
+     title: article_.title,
+     article: article_,
+@@ -288,29 +238,29 @@ exports.destroy = wrap(function* (req, res) {
+ 
+ exports.showmycomics = wrap(function* (req, res){
+    console.log('articles:showmycomics');
+-   //console.log('req.user is:'+req.user);
++   console.log('req.user is:'+req.user);
+    console.log('req.user.username is:'+req.user.username);
+    console.log('req.user._id is:'+req.user._id);
+-      Article1.find({ 'user': req.user._id, published:1 },  function (err, unpublished_articles) {
++      Article1.find({ 'user': req.user._id, published:1 },  function (err, unpulished_articles) {
+         if (err) {
+             console.log('error in find one!!!!!!!!!!!!!!!!!!!!!!!')
+         }
+-            Article1.find({ 'user': req.user._id, published:2 },  function (err, published_articles) {
++            Article1.find({ 'user': req.user._id, published:2 },  function (err, pulished_articles) {
+         if (err) {
+             console.log('error in find one!!!!!!!!!!!!!!!!!!!!!!!')
+-        }   
+-            console.log('test\nline 2\nline 3\nline4');
+-            console.log('published_articles   :' +published_articles);
+-            console.log('test\nline 2\nline 3\nline4');
+-            console.log('unpulished_articles'+unpublished_articles)
+-            res.render('usercomics',{unpublished_articles:unpublished_articles,pulished_articles:published_articles });
+-               
++        }
++        
++            res.render('usercomics',{unpulished_articles:unpulished_articles,pulished_articles:pulished_articles });
++        
++       
+          });
+-
+-    });  
++        
++        
++        
++    });
++   
+ });
+ 
+-
+ /**
+  * Update Article.cells order
+  * 
+diff --git a/src/controllers/home.ts b/src/controllers/home.ts
+index dc613a6..70a1288 100644
+--- a/src/controllers/home.ts
++++ b/src/controllers/home.ts
+@@ -20,6 +20,8 @@ exports.about = function (req, res)
+ //     res.render('usercomics')
+ // };
+ 
++
++
+ exports.comiceditor = function(req,res) {
+     res.render('comic_editor')
+ };
+diff --git a/src/controllers/users.js b/src/controllers/users.js
+index 74cf20d..8ff04d2 100644
+--- a/src/controllers/users.js
++++ b/src/controllers/users.js
+@@ -35,21 +35,24 @@ exports.create = wrap(function* (req, res) {
+  */
+ exports.showProfile = function (req, res) {
+     const user = req.profile;
+-    //console.log('req.profile is:'+);
+-    console.log('user is :' + user);
+-    Articles.find({ 'user': user._id }, function (err, myarticles) {
++    Articles.find({ 'user': req.user._id }, function (err, myarticles) {
+         if (err) {
+             console.log('error in find one!!!!!!!!!!!!!!!!!!!!!!!');
+         }
+-        User1.findOne({ '_id': user._id }, function (err, oneUser) {
+-            console.log('oneUser is:' + oneUser);
+-            res.render('profile', {
+-                title: oneUser.name,
+-                user: oneUser,
+-                myarticles: myarticles
+-            });
++        for (var j = 0; j < myarticles.length; j++) {
++            for (var i = 0; i < myarticles[j].cells.length; i++) {
++                var URL_ = myarticles[j].cells[i].ImageURL;
++                var splitted = URL_.split('/');
++                var _URL = '/' + splitted[2] + '/' + splitted[3];
++                myarticles[j].cells[i].ImageURL = _URL;
++            }
++        }
++        console.log(myarticles);
++        res.render('profile', {
++            title: user.name,
++            user: user,
++            myarticles: myarticles
+         });
+-        // console.log(myarticles);
+     });
+ };
+ //TODO
+@@ -68,7 +71,7 @@ exports.login = function (req, res) {
+  * Show sign up form
+  */
+ exports.signup = function (req, res) {
+-    res.render('signup');
++    res.render('registration');
+ };
+ /**
+  * Logout
+diff --git a/src/controllers/users.ts b/src/controllers/users.ts
+index 318aa65..52c76ec 100644
+--- a/src/controllers/users.ts
++++ b/src/controllers/users.ts
+@@ -42,27 +42,26 @@ exports.create = wrap(function* (req, res) {
+ 
+ exports.showProfile = function (req, res) {
+   const user = req.profile;
+-  //console.log('req.profile is:'+);
+-  console.log('user is :'+user);
+-
+-      Articles.find({ 'user': user._id  },  function (err, myarticles) {
++      Articles.find({ 'user': req.user._id  },  function (err, myarticles) {
+         if (err) {
+             console.log('error in find one!!!!!!!!!!!!!!!!!!!!!!!')
+         }
+-
+-        User1.findOne({ '_id': user._id  },  function (err, oneUser) {
+-            
+-        console.log('oneUser is:'+oneUser);
+-        res.render('profile', {
+-            title: oneUser.name,
+-            user: oneUser,
++         
++           for (var j =0;j<myarticles.length;j++){
++            for (var i =0; i < myarticles[j].cells.length;i++ ){
++                var URL_ = myarticles[j].cells[i].ImageURL;
++                var splitted = URL_.split('/');
++                var _URL = '/'+splitted[2]+'/'+splitted[3];
++                myarticles[j].cells[i].ImageURL = _URL;
++        }
++  }
++        
++        console.log(myarticles);
++          res.render('profile', {
++            title: user.name,
++            user: user,
+             myarticles : myarticles
+          });
+-        });
+-        
+-        
+-       // console.log(myarticles);
+- 
+     });
+   
+ 
+@@ -90,7 +89,7 @@ exports.login = function (req, res) {
+  */
+ 
+ exports.signup = function (req, res) {
+-  res.render('signup')};
++  res.render('registration')};
+ 
+ /**
+  * Logout
+diff --git a/src/models/article.js b/src/models/article.js
+index 610d78d..899f816 100644
+--- a/src/models/article.js
++++ b/src/models/article.js
+@@ -15,10 +15,14 @@ mongoose.model('ImgModel', ImgModel);
+ /**
+  * Article Schema
+  */
++var Status;
++(function (Status) {
++    Status[Status["Publish"] = 0] = "Publish";
++    Status[Status["Draft"] = 1] = "Draft";
++})(Status || (Status = {}));
+ var ArticleSchema = new Schema({
+     title: { type: String, required: true },
+     published: { type: String, default: 1 },
+-    datePublished: { type: Date, default: Date.now },
+     body: { type: String, required: true },
+     user: { type: Schema.ObjectId, ref: 'User' },
+     comments: [{
+@@ -46,6 +50,18 @@ ArticleSchema.pre('remove', function (next) {
+  */
+ ArticleSchema.methods = {
+     /**
++     * Set article to published
++     * Default is false == draft
++     * Toggle between published and draft
++     */
++    setPublished: function () {
++        if (this.published == "") {
++            this.published = false;
++        }
++        else
++            this.published = true;
++    },
++    /**
+      * update cell order
+      * before: Number -- index of before cell
+      * after: Number -- index of where you want the cell to be
+@@ -164,21 +180,15 @@ ArticleSchema.methods = {
+     * @api private
+     */
+     publish: function () {
+-        console.log('BE this is :' + this);
++        console.log('***************publish at article.ts');
+         if (this.published == 2) {
+-            console.log('              **************it is already published');
++            console.log('**************it is published');
+         }
+         else {
+-            console.log('     BEFORE this.datePublished' + this.datePublished);
+-            console.log('     BEFORE this.published is:' + this.published);
+             this.published = 2;
+-            this.datePublished = Date.now; // Set datePublished 
+-            console.log('     AFTER this.datePublished' + this.datePublished);
+-            console.log('     AFTER this.published is:' + this.published);
+-            this.save();
++            console.log('it is published now****************');
+         }
+-        console.log('AF this is :' + this);
+-        return this;
++        return this.save();
+     },
+     /**
+      * Add comment
+@@ -238,8 +248,8 @@ ArticleSchema.statics =
+         * @api private
+         */
+         load: function (_id) {
+-            // var test_without_populate =   this.findOne({ _id }) ;
+-            //console.log('test_without_populate is :'+test_without_populate);
++            var test_without_populate = this.findOne({ _id: _id });
++            console.log('test_without_populate is :' + test_without_populate);
+             var query_results = this.findOne({ _id: _id })
+                 .populate('user', 'name email username')
+                 .populate('comments.user')
+@@ -260,17 +270,14 @@ ArticleSchema.statics =
+          */
+         list: function (options) {
+             var criteria = options.criteria || {};
+-            console.log('criteria is *****************' + criteria);
+             var page = options.page || 0;
+             var limit = options.limit || 30;
+-            var results_ = this.find(criteria)
++            return this.find(criteria)
+                 .populate('user', 'name username')
+-                .sort({ datePublished: -1 })
++                .sort({ createdAt: -1 })
+                 .limit(limit)
+                 .skip(limit * page)
+                 .exec();
+-            console.log('results_ at article.list is' + results_);
+-            return results_;
+         }
+     };
+ mongoose.model('Article', ArticleSchema);
+diff --git a/src/models/article.ts b/src/models/article.ts
+index 47d4d10..96aa88d 100644
+--- a/src/models/article.ts
++++ b/src/models/article.ts
+@@ -23,12 +23,15 @@ mongoose.model('ImgModel', ImgModel);
+ /**
+  * Article Schema
+  */
+-
++enum Status{
++    Publish,
++    Draft,
++}
+ 
+ var ArticleSchema = new Schema({
+   title: {type:String, required:true},
+   published:{type : String, default: 1 }, // 1 ===> unpublished 2 ====>published 
+-  datePublished:{type :Date, default: Date.now}, // As
++
+   body: {type:String, required:true},
+   user: { type : Schema.ObjectId, ref : 'User' },
+   comments: [{
+@@ -63,7 +66,16 @@ ArticleSchema.pre('remove', function (next) {
+ 
+ ArticleSchema.methods = {
+     
+-
++    /**
++     * Set article to published
++     * Default is false == draft
++     * Toggle between published and draft
++     */
++    setPublished: function() {
++        if (this.published == "") {
++            this.published = false;
++        } else this.published = true;
++    },
+     
+     
+     /**
+@@ -197,7 +209,6 @@ ArticleSchema.methods = {
+ 
+   },
+ 
+-
+    /**
+    * Publish article 
+    *
+@@ -207,25 +218,18 @@ ArticleSchema.methods = {
+    */
+ 
+   publish: function () {
+-    console.log('BE this is :' +this);
++      console.log('***************publish at article.ts');
+     if (this.published == 2 ){
+-        console.log('              **************it is already published');
++        console.log('**************it is published');
+     }
+     else {
+-        console.log('     BEFORE this.datePublished'+this.datePublished);
+-        console.log('     BEFORE this.published is:'+this.published);
+         this.published = 2;
+-        this.datePublished = Date.now; // Set datePublished 
+-        console.log('     AFTER this.datePublished'+this.datePublished);
+-        console.log('     AFTER this.published is:'+this.published);
+-        this.save();
+-        
++        console.log('it is published now****************');
+     }
+-    console.log('AF this is :' +this);
+-    return this;
+-    
+ 
+     
++
++    return this.save();
+   }, 
+   
+ 
+@@ -287,7 +291,8 @@ ArticleSchema.methods = {
+  * Look at the bottom two as examples if you get stuck
+  */
+ ArticleSchema.statics = 
+-{
++{ 
++    
+     /**
+     * Find a comic by id
+     * Return the comic that we find back based on the id we passed through
+@@ -295,16 +300,18 @@ ArticleSchema.statics =
+     * @param {ObjectId} id
+     * @api private
+     */
++    
+     load: function (_id) {
+-   // var test_without_populate =   this.findOne({ _id }) ;
+-    //console.log('test_without_populate is :'+test_without_populate);
++    var test_without_populate =   this.findOne({ _id }) ;
++    console.log('test_without_populate is :'+test_without_populate);
+     var query_results =  this.findOne({ _id })
+       .populate('user', 'name email username')
+       .populate('comments.user')
+       .exec();
+       console.log('query_results at article.load is :'+query_results);
+       return query_results;
+-  },  
++  },
++  
+     loadcomics: function(userid)
+     {
+         return this.findOne({'user': userid})
+@@ -321,17 +328,14 @@ ArticleSchema.statics =
+ 
+   list: function (options) {
+     var criteria = options.criteria || {};
+-    console.log('criteria is *****************'+criteria);
+     var page = options.page || 0;
+     var limit = options.limit || 30;
+-    var results_ = this.find(criteria)
++    return this.find(criteria)
+       .populate('user', 'name username')
+-      .sort({ datePublished: -1 })
++      .sort({ createdAt: -1 })
+       .limit(limit)
+       .skip(limit * page)
+       .exec();
+-      console.log('results_ at article.list is'+results_);
+-      return results_;
+   }
+ };
+ 
+diff --git a/src/models/user.js b/src/models/user.js
+index a56e80b..f0ec4bc 100644
+--- a/src/models/user.js
++++ b/src/models/user.js
+@@ -89,6 +89,13 @@ UserSchema.methods = {
+     skipValidation: function () {
+         return true;
+     },
++    /**
++     * Authenticate - check if the passwords are the same
++     *
++     * @param {String} plainText
++     * @return {Boolean}
++     * @api public
++     */
+     authenticate: function (plainText) {
+         return this.encryptPassword(plainText) === this.hashed_password;
+     },
+diff --git a/src/models/user.ts b/src/models/user.ts
+index 56f3ca2..a7d74e5 100644
+--- a/src/models/user.ts
++++ b/src/models/user.ts
+@@ -108,7 +108,7 @@ skipValidation: function(){
+    * @api public
+    */
+ 
+-  ,authenticate: function (plainText) {
++  authenticate: function (plainText) {
+     return this.encryptPassword(plainText) === this.hashed_password;
+   },
+ 
+diff --git a/src/models/usercomics.html b/src/models/usercomics.html
+deleted file mode 100644
+index 70f56e1..0000000
+--- a/src/models/usercomics.html
++++ /dev/null
+@@ -1,464 +0,0 @@
+-<!DOCTYPE html>
+-<html lang="en">
+-<head>
+-    <meta charset="utf-8">
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <meta name="description" content="">
+-    <meta name="author" content="">
+-    <title> My comic books | ComicBuzz</title>
+-	<!-- core CSS -->
+-    <link href="/css/bootstrap.min.css" rel="stylesheet">
+-    <link href="/css/font-awesome.min.css" rel="stylesheet">
+-    <link href="/css/animate.min.css" rel="stylesheet">
+-    <link href="/css/prettyPhoto.css" rel="stylesheet">
+-    <link href="/css/main.css" rel="stylesheet">
+-    <link href="/css/responsive.css" rel="stylesheet">
+-    <!--[if lt IE 9]>
+-    <script src="../js/html5shiv.js"></script>
+-    <script src="../js/respond.min.js"></script>
+-    <![endif]-->       
+-    <link rel="shortcut icon" href="/images/ico/favicon.ico">
+-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/ico/apple-touch-icon-144-precomposed.png">
+-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
+-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
+-    <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
+-</head>
+-
+-#section {
+-    width:350px;
+-    float:left;
+-    padding:10px;	 	 
+-}
+-<body>
+-
+-    <header id="header">
+-        <div class="top-bar">
+-            <div class="container">
+-                <div class="row">
+-                    <div class="col-sm-6 col-xs-4">
+-                        <div class="top-number"><p><i class="fa fa-phone-square"></i>  +778 384 9877</p></div>
+-                    </div>
+-                    <div class="col-sm-6 col-xs-8">
+-                       <div class="social">
+-                            <ul class="social-share">
+-                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+-                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+-                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li> 
+-                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+-                                <li><a href="#"><i class="fa fa-skype"></i></a></li>
+-                            </ul>
+-                            <div class="search">
+-                                <form role="form">
+-                                    <input type="text" class="search-form" autocomplete="off" placeholder="Search">
+-                                    <i class="fa fa-search"></i>
+-                                </form>
+-                           </div>
+-                       </div>
+-                    </div>
+-                </div>
+-            </div><!--/.container-->
+-        </div><!--/.top-bar-->
+-
+-        <nav class="navbar navbar-inverse" role="banner">
+-            <div class="container">
+-                <div class="navbar-header">
+-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+-                        <span class="sr-only">Toggle navigation</span>
+-                        <span class="icon-bar"></span>
+-                        <span class="icon-bar"></span>
+-                        <span class="icon-bar"></span>
+-                    </button>
+-                    <a class="navbar-brand" href="/index"><img src="/images/logo.png" alt="logo"></a>
+-                </div>
+-				
+-                <div class="collapse navbar-collapse navbar-right">
+-                    <ul class="nav navbar-nav">
+-                        <li><a href="/">Home</a></li>
+-                        <li><a href="/about">About Us</a></li>
+-                        <!--<li><a href="tagsearch.html">Tags</a></li>-->
+-                        
+-                        
+-                        <li class="dropdown">
+-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <i class="fa fa-angle-down"></i></a>
+-                            <ul class="dropdown-menu">
+-                                <li><a href="/usercomics">My Comics</a></li>
+-                                <li><a href="/upload">Upload</a></li>
+-                                <li><a href="/settings">Account Settings</a></li>
+-                                <li><a href="/userlist">View Other Users' Profile Page</a></li>
+-                            </ul>
+-                        </li>
+-                        
+-                        
+-                        <li><a href="/contact">Contact</a></li>   
+-                        
+-                        	
+-                        
+-                           {% if (req.isAuthenticated()) %}
+-          <li class="{% if (isActive('/users/' + req.user.id )) %}active{% endif %}">
+-            <a href="{{ '/users/' + req.user.id }}" title="{{ req.user.username }}">{{ req.user.username }}</a>
+-          </li>
+-          <li>
+-            <a href="/logout" title="logout">Logout</a>
+-          </li>
+-        {% else %}
+-          <li class="{% if (isActive('/login')) %}active{% endif %}">
+-            <a href="/login" title="Login">Login</a>
+-          </li>
+-        {% endif %}
+-                        
+-                                             
+-                    </ul>
+-                </div>
+-            </div><!--/.container-->
+-        </nav><!--/nav-->
+-        
+-    </header><!--/header-->
+-    <section id="portfolio">
+-        <div class="container">
+-            <div class="center">
+-               <h2>View MyComics</h2>
+-               <p class="lead"></p>
+-            </div>
+-            
+-            <div id="section">
+-             {% for article in pulished_articles %}
+-              <h2>View  My Published Comics</h2>
+-                <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                    <div class="recent-work-wrap">
+-                        <img id="{{article._id}}" class="img-responsive comic-image" src="{{article.cells[0].ImageURL}}" alt="">
+-                        <h3><a href="{{ '/comics/' + article._id }}" title="{{ article.title }}" class="comic-title">{{ article.title }}</a></h3>
+-                        <a id="{{ article._id }}" href="{{ '/comics/' + article._id }}" >
+-                            <div class="overlay">
+-                                <div class="recent-work-inner">                      
+-                                    <p id="Description">{{ article.body }}</p>
+-                                    {% if (article.user) %}
+-                                        &nbsp; - &nbsp;
+-                                        <span>Author: </span>
+-                                        <a href="{{ '/users/' + article.user._id }}">
+-                                        {{ article.user.name || article.user.username }}
+-                                        </a>
+-                                    {% endif %}
+-                                    <a href="{{ '/comics/' + article._id }}"><p><i class="fa fa-eye"></i> Click to View</p></h>
+-                                </div> 
+-                            </div>
+-                        </a>
+-                    </div>
+-                </div>
+-            {% endfor %}
+-            </div>
+-            <div id="section">
+-            <div> 
+-                        {% for article in unpublished_articles %}
+-              <h2>View  My Unpublished Comics</h2>
+-                <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                    <div class="recent-work-wrap">
+-                        <img id="{{article._id}}" class="img-responsive comic-image" src="{{article.cells[0].ImageURL}}" alt="">
+-                        <h3><a href="{{ '/comics/' + article._id }}" title="{{ article.title }}" class="comic-title">{{ article.title }}</a></h3>
+-                        <a id="{{ article._id }}" href="{{ '/comics/' + article._id }}" >
+-                            <div class="overlay">
+-                                <div class="recent-work-inner">                      
+-                                    <p id="Description">{{ article.body }}</p>
+-                                    {% if (article.user) %}
+-                                        &nbsp; - &nbsp;
+-                                        <span>Author: </span>
+-                                        <a href="{{ '/users/' + article.user._id }}">
+-                                        {{ article.user.name || article.user.username }}
+-                                        </a>
+-                                    {% endif %}
+-                                    <a href="{{ '/comics/' + article._id }}"><p><i class="fa fa-eye"></i> Click to View</p></h>
+-                                </div> 
+-                            </div>
+-                        </a>
+-                    </div>
+-                </div>
+-            {% endfor %}
+-            </div>
+-            </div>
+- <!--     
+-  <h3>
+-    <a href="{{ '/comics/' + article._id }}" title="{{ article.title }}">{{ article.title }}
+-    </a>
+-  </h3>
+-  <p>{{ article.body }}</p>
+-
+-  {% if (article.user) %}
+-    &nbsp; - &nbsp;
+-    <span>Author: </span>
+-    <a href="{{ '/users/' + article.user._id }}">
+-      {{ article.user.name || article.user.username }}
+-    </a>
+-  {% endif %}
+-
+-  {% if (article.tags) %}
+-    &nbsp; - &nbsp;
+-    <span>Tags: </span>
+-    {% for tag in article.tags.split(',') %}
+-      <i class="muted fa fa-tag"></i>&nbsp;
+-      <a href="{{ '/tags/' + tag }}" class="tag">{{ tag }}</a>
+-      &nbsp;&nbsp;
+-    {% endfor %}
+-  {% endif %}
+-</div>
+-            -->
+-        
+-
+-            <!--<ul class="portfolio-filter text-center">
+-                <li><a class="btn btn-default active" href="#" data-filter="*">All Works</a></li>
+-                <li><a class="btn btn-default" href="#" data-filter=".bootstrap">Single Cells</a></li>
+-                <li><a class="btn btn-default" href="#" data-filter=".html">Multi Cell</a></li>
+-                <li><a class="btn btn-default" href="#" data-filter=".wordpress">All Time</a></li>
+-            </ul><!--/#portfolio-filter-->
+-
+-            <!--<div class="row">
+-                <div class="portfolio-items">                
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell0" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title0"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic0" href="/comics" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description0">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                  <!-- <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell1" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title1"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic1" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description1">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell2" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title2"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic2" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description2">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell3" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title3"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic3" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description3">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell4" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title4"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic4" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description4">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell5" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title5"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic5" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description5">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell6" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title6"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic6" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description6">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell7" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title7"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic7" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description7">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell8" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title8"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic8" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description8">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell9" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title9"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic9" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description9">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell10" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title10"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic10" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description10">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>
+-                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+-                        <div class="recent-work-wrap">
+-                            <img id="Cell11" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+-                            <h3 id="Title11"><a href="#" class="comic-title">Filler Title</a></h3>
+-                            <a id="Comic11" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+-                                <div class="overlay">
+-                                    <div class="recent-work-inner">                      
+-                                        <p id="Description11">Filler Description</p>
+-                                        <p><i class="fa fa-eye"></i> Click to View</p>
+-                                    </div> 
+-                                </div>
+-                            </a>
+-                        </div>
+-                    </div>-->
+-            </div>
+-        </div>
+-                  
+-
+-    </section><!--/#portfolio-item-->
+-    
+-    <section id="bottom">
+-        <div class="container wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms">
+-            <div class="row">
+-                <div class="col-md-3 col-sm-6">
+-                    <div class="widget">
+-                        <h3>Company</h3>
+-                        <ul>
+-                            <li><a href="#">About us</a></li>
+-                            <li><a href="#">Meet the team</a></li>
+-                            <li><a href="#">Copyright</a></li>
+-                            <li><a href="#">Terms of use</a></li>
+-                            <li><a href="#">Privacy policy</a></li>
+-                            <li><a href="#">Contact us</a></li>
+-                        </ul>
+-                    </div>    
+-                </div><!--/.col-md-3-->
+-
+-                <div class="col-md-3 col-sm-6">
+-                    <div class="widget">
+-                        <h3>Support</h3>
+-                        <ul>
+-                            <li><a href="#">Faq</a></li>
+-                            <li><a href="#">Blog</a></li>
+-                            <li><a href="#">Forum</a></li>
+-                            <li><a href="#">Documentation</a></li>
+-                        </ul>
+-                    </div>    
+-                </div><!--/.col-md-3-->
+-
+-                <div class="col-md-3 col-sm-6">
+-                    <div class="widget">
+-                        <h3>Developers</h3>
+-                        <ul>
+-                            <li><a href="#">Web Development</a></li>
+-                            <li><a href="#">Theme</a></li>
+-                            <li><a href="#">Development</a></li>
+-                            <li><a href="#">Plugin Development</a></li>
+-                            <li><a href="#">Article Writing</a></li>
+-                        </ul>
+-                    </div>    
+-                </div><!--/.col-md-3-->
+-
+-                <div class="col-md-3 col-sm-6">                   
+-                </div><!--/.col-md-3-->
+-            </div>
+-        </div>
+-    </section><!--/#bottom-->
+-
+-    <footer id="footer" class="midnight-blue">
+-        <div class="container">
+-            <div class="row">
+-                <div class="col-sm-6">
+-                    &copy; 2016 <a target="_blank" href="http://comicbuzz.com/" title="Create some comics">ComicBuzz</a>. All Rights Reserved.
+-                </div>
+-                <div class="col-sm-6">
+-                    <ul class="pull-right">
+-                        <li><a href="#">Home</a></li>
+-                        <li><a href="#">About Us</a></li>
+-                        <li><a href="#">Faq</a></li>
+-                        <li><a href="#">Contact Us</a></li>
+-                    </ul>
+-                </div>
+-            </div>
+-        </div>
+-    </footer><!--/#footer-->
+-
+-    <script src="../models/bookModel.js"></script>
+-    <script></script>
+-    <script src="/js/jquery.js"></script>
+-    <script src="/js/bootstrap.min.js"></script>
+-    <script src="/js/jquery.prettyPhoto.js"></script>
+-    <script src="/js/jquery.isotope.min.js"></script>
+-    <script src="/js/main.js"></script>
+-    <script src="/js/wow.min.js"></script>
+-</body>
+-
+-</html>
+diff --git a/src/public/uploads/1459193473028.png b/src/public/uploads/1459193473028.png
+deleted file mode 100644
+index 5ba57e0..0000000
+Binary files a/src/public/uploads/1459193473028.png and /dev/null differ
+diff --git a/src/public/uploads/1459194139621.png b/src/public/uploads/1459194139621.png
+deleted file mode 100644
+index e99ba27..0000000
+Binary files a/src/public/uploads/1459194139621.png and /dev/null differ
+diff --git a/src/public/uploads/1459194139629.png b/src/public/uploads/1459194139629.png
+deleted file mode 100644
+index cc806f1..0000000
+Binary files a/src/public/uploads/1459194139629.png and /dev/null differ
+diff --git a/src/public/uploads/1459194139636.png b/src/public/uploads/1459194139636.png
+deleted file mode 100644
+index 36addc6..0000000
+Binary files a/src/public/uploads/1459194139636.png and /dev/null differ
+diff --git a/src/public/uploads/1459197705889.png b/src/public/uploads/1459197705889.png
+deleted file mode 100644
+index 2f0bc28..0000000
+Binary files a/src/public/uploads/1459197705889.png and /dev/null differ
+diff --git a/src/public/uploads/1459197705892.png b/src/public/uploads/1459197705892.png
+deleted file mode 100644
+index c6c7a46..0000000
+Binary files a/src/public/uploads/1459197705892.png and /dev/null differ
+diff --git a/src/public/uploads/1459197705893.png b/src/public/uploads/1459197705893.png
+deleted file mode 100644
+index e1fa8f8..0000000
+Binary files a/src/public/uploads/1459197705893.png and /dev/null differ
+diff --git a/src/public/uploads/1459200667936.png b/src/public/uploads/1459200667936.png
+deleted file mode 100644
+index 8086d57..0000000
+Binary files a/src/public/uploads/1459200667936.png and /dev/null differ
+diff --git a/src/public/uploads/1459200667940.png b/src/public/uploads/1459200667940.png
+deleted file mode 100644
+index 93a537a..0000000
+Binary files a/src/public/uploads/1459200667940.png and /dev/null differ
+diff --git a/src/public/uploads/1459202440872.png b/src/public/uploads/1459202440872.png
+deleted file mode 100644
+index c6c7a46..0000000
+Binary files a/src/public/uploads/1459202440872.png and /dev/null differ
+diff --git a/src/public/uploads/1459202440875.png b/src/public/uploads/1459202440875.png
+deleted file mode 100644
+index 85baa27..0000000
+Binary files a/src/public/uploads/1459202440875.png and /dev/null differ
+diff --git a/src/public/uploads/1459202472979.png b/src/public/uploads/1459202472979.png
+deleted file mode 100644
+index 4bc6b7f..0000000
+Binary files a/src/public/uploads/1459202472979.png and /dev/null differ
+diff --git a/src/public/uploads/1459202472982.png b/src/public/uploads/1459202472982.png
+deleted file mode 100644
+index dd562c8..0000000
+Binary files a/src/public/uploads/1459202472982.png and /dev/null differ
+diff --git a/src/public/uploads/1459202472984.png b/src/public/uploads/1459202472984.png
+deleted file mode 100644
+index db25ab4..0000000
+Binary files a/src/public/uploads/1459202472984.png and /dev/null differ
+diff --git a/src/public/uploads/1459202501929.png b/src/public/uploads/1459202501929.png
+deleted file mode 100644
+index 646472e..0000000
+Binary files a/src/public/uploads/1459202501929.png and /dev/null differ
+diff --git a/src/public/uploads/1459202501930.png b/src/public/uploads/1459202501930.png
+deleted file mode 100644
+index 8086d57..0000000
+Binary files a/src/public/uploads/1459202501930.png and /dev/null differ
+diff --git a/src/public/uploads/1459202501932.png b/src/public/uploads/1459202501932.png
+deleted file mode 100644
+index db25ab4..0000000
+Binary files a/src/public/uploads/1459202501932.png and /dev/null differ
+diff --git a/src/public/uploads/1459202534726.png b/src/public/uploads/1459202534726.png
+deleted file mode 100644
+index dd562c8..0000000
+Binary files a/src/public/uploads/1459202534726.png and /dev/null differ
+diff --git a/src/public/uploads/1459202534727.png b/src/public/uploads/1459202534727.png
+deleted file mode 100644
+index 8086d57..0000000
+Binary files a/src/public/uploads/1459202534727.png and /dev/null differ
+diff --git a/src/public/uploads/1459202534728.png b/src/public/uploads/1459202534728.png
+deleted file mode 100644
+index 49da5e2..0000000
+Binary files a/src/public/uploads/1459202534728.png and /dev/null differ
+diff --git a/src/public/uploads/1459203522786.png b/src/public/uploads/1459203522786.png
+deleted file mode 100644
+index 646472e..0000000
+Binary files a/src/public/uploads/1459203522786.png and /dev/null differ
+diff --git a/src/public/uploads/1459203522789.png b/src/public/uploads/1459203522789.png
+deleted file mode 100644
+index dd562c8..0000000
+Binary files a/src/public/uploads/1459203522789.png and /dev/null differ
+diff --git a/src/public/uploads/1459203850071.png b/src/public/uploads/1459203850071.png
+deleted file mode 100644
+index dd562c8..0000000
+Binary files a/src/public/uploads/1459203850071.png and /dev/null differ
+diff --git a/src/public/uploads/1459203850074.png b/src/public/uploads/1459203850074.png
+deleted file mode 100644
+index e420d4b..0000000
+Binary files a/src/public/uploads/1459203850074.png and /dev/null differ
+diff --git a/src/public/uploads/1459203880573.png b/src/public/uploads/1459203880573.png
+deleted file mode 100644
+index e420d4b..0000000
+Binary files a/src/public/uploads/1459203880573.png and /dev/null differ
+diff --git a/src/public/uploads/1459203880574.png b/src/public/uploads/1459203880574.png
+deleted file mode 100644
+index 1a45ad0..0000000
+Binary files a/src/public/uploads/1459203880574.png and /dev/null differ
+diff --git a/src/public/uploads/1459203910246.png b/src/public/uploads/1459203910246.png
+deleted file mode 100644
+index e420d4b..0000000
+Binary files a/src/public/uploads/1459203910246.png and /dev/null differ
+diff --git a/src/public/uploads/1459203910248.png b/src/public/uploads/1459203910248.png
+deleted file mode 100644
+index 8086d57..0000000
+Binary files a/src/public/uploads/1459203910248.png and /dev/null differ
+diff --git a/src/public/uploads/1459203910249.png b/src/public/uploads/1459203910249.png
+deleted file mode 100644
+index db25ab4..0000000
+Binary files a/src/public/uploads/1459203910249.png and /dev/null differ
+diff --git a/src/public/uploads/1459207798784.png b/src/public/uploads/1459207798784.png
+deleted file mode 100644
+index dd562c8..0000000
+Binary files a/src/public/uploads/1459207798784.png and /dev/null differ
+diff --git a/src/public/uploads/1459207798788.png b/src/public/uploads/1459207798788.png
+deleted file mode 100644
+index 1a45ad0..0000000
+Binary files a/src/public/uploads/1459207798788.png and /dev/null differ
+diff --git a/src/public/uploads/1459210741588.png b/src/public/uploads/1459210741588.png
+deleted file mode 100644
+index dd562c8..0000000
+Binary files a/src/public/uploads/1459210741588.png and /dev/null differ
+diff --git a/src/public/uploads/1459210741592.png b/src/public/uploads/1459210741592.png
+deleted file mode 100644
+index e420d4b..0000000
+Binary files a/src/public/uploads/1459210741592.png and /dev/null differ
+diff --git a/src/views/profile.html b/src/views/profile.html
+index d7bb630..63a56be 100644
+--- a/src/views/profile.html
++++ b/src/views/profile.html
+@@ -119,7 +119,7 @@
+             </p>
+             <p>
+                 <h3 class="info-generic">Email Address:</h3>
+-                <h3 class="info-personal">{{user.email}}</h3>
++                <h3 class="info-personal">{{req.user.email}}</h3>
+             </p>
+         </div>
+             <div class="center">
+diff --git a/src/views/registration.html b/src/views/registration.html
+new file mode 100644
+index 0000000..758b437
+--- /dev/null
++++ b/src/views/registration.html
+@@ -0,0 +1,269 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="utf-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <meta name="description" content="">
++    <meta name="author" content="">
++    <title>Register | ComicBuzz</title>
++	<!-- core CSS -->
++    <link href="/css/bootstrap.min.css" rel="stylesheet">
++    <link href="/css/font-awesome.min.css" rel="stylesheet">
++    <link href="/css/animate.min.css" rel="stylesheet">
++    <link href="/css/prettyPhoto.css" rel="stylesheet">
++    <link href="/css/main.css" rel="stylesheet">
++    <link href="/css/responsive.css" rel="stylesheet">
++    <!--[if lt IE 9]>
++    <script src="../js/html5shiv.js"></script>
++    <script src="../js/respond.min.js"></script>
++    <![endif]-->       
++    <link rel="shortcut icon" href="/images/ico/favicon.ico">
++    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/ico/apple-touch-icon-144-precomposed.png">
++    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
++    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
++    <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
++</head><!--/head-->
++<body>
++
++    <header id="header">
++        <div class="top-bar">
++            <div class="container">
++                <div class="row">
++                    <div class="col-sm-6 col-xs-4">
++                        <div class="top-number"><p><i class="fa fa-phone-square"></i>  +778 384 9877</p></div>
++                    </div>
++                    <div class="col-sm-6 col-xs-8">
++                       <div class="social">
++                            <ul class="social-share">
++                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
++                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
++                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li> 
++                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
++                                <li><a href="#"><i class="fa fa-skype"></i></a></li>
++                            </ul>
++                            <div class="search">
++                                <form role="form">
++                                    <input type="text" class="search-form" autocomplete="off" placeholder="Search">
++                                    <i class="fa fa-search"></i>
++                                </form>
++                           </div>
++                       </div>
++                    </div>
++                </div>
++            </div><!--/.container-->
++        </div><!--/.top-bar-->
++
++      <nav class="navbar navbar-inverse" role="banner">
++            <div class="container">
++                <div class="navbar-header">
++                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
++                        <span class="sr-only">Toggle navigation</span>
++                        <span class="icon-bar"></span>
++                        <span class="icon-bar"></span>
++                        <span class="icon-bar"></span>
++                    </button>
++                    <a class="navbar-brand" href="/"><img src="/images/logo.png" alt="logo"></a>
++                </div>
++                
++                <div class="collapse navbar-collapse navbar-right">
++                    <ul class="nav navbar-nav">
++                        <li><a href="/index">Home</a></li>
++                        <li><a href="/about-us">About Us</a></li>
++                        <li><a href="/topcomics">Top Comics</a></li>
++                        <!--<li><a href="tagsearch.html">Tags</a></li>-->
++                        
++                        
++                        <li class="dropdown">
++                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <i class="fa fa-angle-down"></i></a>
++                            <ul class="dropdown-menu">
++                                <li><a href="/usercomics">My Comics</a></li>
++                                <li><a href="/upload">Upload</a></li>
++                                <li><a href="/settings">Account Settings</a></li>
++                                <li><a href="/userlist">View Other Users' Profile Page</a></li>
++                            </ul>
++                        </li>
++                        
++                        
++                        <li><a href="/contact-us">Contact</a></li>   
++                        
++                         
++                        
++                    
++                           {% if (req.isAuthenticated()) %}
++        <li class="{% if (isActive('/users/' + req.user.id )) %}active{% endif %}">
++         <a href="{{ 'index' + req.user.id }}" title="{{ req.user.username }}">{{ req.user.username }}</a>
++          </li>
++          <li>
++            <a href="/logout" title="logout">Logout</a>
++          </li>
++        {% else %}
++          <li class="{% if (isActive('/login')) %}active{% endif %}">
++             <li class="active"><a href="/login" title="Login">Login</a>
++          </li>
++        {% endif %}
++                                             
++                    </ul>
++                </div>
++            </div><!--/.container-->
++        </nav><!--/nav-->
++        
++    </header><!--/header-->
++
++  <div class="container">
++
++<div class="row">
++    <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
++        <form action="/users" method="post" role="form">
++            <h2>Please Sign Up <small>It's free! (For now...)</small></h2>
++            <hr class="colorgraph">
++            <div class="row">
++                <div class="col-xs-12 col-sm-6 col-md-6">
++                    <div class="form-group">
++                        <input id="name" class="form-control" type="text" name="name" placeholder="Full name"  tabindex="1" value="{{ user.name }}">
++                        <!--<input type="text" name="first_name" id="first_name" class="form-control input-lg" placeholder="Full Name" tabindex="1">-->
++                    </div>
++                </div>
++                <div class="col-xs-12 col-sm-6 col-md-6">
++                    <div class="form-group">
++                        <input id="username" class="form-control" type="text" name="username" placeholder="Username" value="{{ user.username }}" tabindex="2">
++                     
++                    </div>
++                </div>
++            </div>
++           
++            <div class="form-group">
++                <input type="text" name="email" placeholder="Email" value="{{ user.email }}" id="email" class="form-control" tabindex="3">
++               <!-- <input type="email" name="email" id="email" class="form-control input-lg" placeholder="Email Address" tabindex="4">-->
++            </div>
++            <div class="row">
++                <div class="col-xs-12 col-sm-6 col-md-6">
++                    <div class="form-group">
++                        <input id="password" class="form-control" type="password" name="password" placeholder="Password" tabindex="4">
++                       <!-- <input type="password" name="password" id="password" class="form-control input-lg" placeholder="Password" tabindex="5">-->
++                    </div>
++                </div>
++                <div class="col-xs-12 col-sm-6 col-md-6">
++                    
++                </div>
++            </div>
++            <div class="row">
++                <div class="col-xs-4 col-sm-3 col-md-3">
++                    <span class="button-checkbox">
++                       
++                    </span>
++                </div>
++                
++            </div>
++            
++            <div class="form-group">
++      <div class="col-sm-offset-2 col-sm-10">
++        <button class="btn btn-primary" type="submit">Sign up</button>
++       
++        <a href="/login" class="show-login">Log in</a>
++      </div>
++            
++           <!-- <hr class="colorgraph">
++            <div class="row">
++                <div class="col-xs-12 col-md-6"><input type="submit" value="Register" class="btn btn-primary btn-block btn-lg" tabindex="7"></div>
++                <div class="col-xs-12 col-md-6"><a href="/login" class="btn btn-success btn-block btn-lg">Sign Up</a></div>
++            </div>-->
++        </form>
++    </div>
++</div>
++
++<!-- Modal -->
++<div class="modal fade" id="t_and_c_m" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
++    <div class="modal-dialog modal-lg">
++        <div class="modal-content">
++            <div class="modal-header">
++                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
++                <h4 class="modal-title" id="myModalLabel">Terms & Conditions</h4>
++            </div>
++            <div class="modal-body">
++                <p>WE</p>
++                <p>DON'T</p>
++                <p>GIVE</p>
++                <p>A</p>
++                <p>SH!T</p>
++            </div>
++            <div class="modal-footer">
++                <button type="button" class="btn btn-primary" data-dismiss="modal">I Agree</button>
++            </div>
++        </div><!-- /.modal-content -->
++    </div><!-- /.modal-dialog -->
++</div><!-- /.modal -->
++</div>
++    <section id="bottom">
++        <div class="container wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms">
++            <div class="row">
++                <div class="col-md-3 col-sm-6">
++                    <div class="widget">
++                        <h3>Company</h3>
++                        <ul>
++                            <li><a href="#">About us</a></li>
++                            <li><a href="#">Meet the team</a></li>
++                            <li><a href="#">Copyright</a></li>
++                            <li><a href="#">Terms of use</a></li>
++                            <li><a href="#">Privacy policy</a></li>
++                            <li><a href="#">Contact us</a></li>
++                        </ul>
++                    </div>    
++                </div><!--/.col-md-3-->
++
++                <div class="col-md-3 col-sm-6">
++                    <div class="widget">
++                        <h3>Support</h3>
++                        <ul>
++                            <li><a href="#">Faq</a></li>
++                            <li><a href="#">Blog</a></li>
++                            <li><a href="#">Forum</a></li>
++                            <li><a href="#">Documentation</a></li>
++                        </ul>
++                    </div>    
++                </div><!--/.col-md-3-->
++
++                <div class="col-md-3 col-sm-6">
++                    <div class="widget">
++                        <h3>Developers</h3>
++                        <ul>
++                            <li><a href="#">Web Development</a></li>
++                            <li><a href="#">Theme</a></li>
++                            <li><a href="#">Development</a></li>
++                            <li><a href="#">Plugin Development</a></li>
++                            <li><a href="#">Article Writing</a></li>
++                        </ul>
++                    </div>    
++                </div><!--/.col-md-3-->
++
++                <div class="col-md-3 col-sm-6">                   
++                </div><!--/.col-md-3-->
++            </div>
++        </div>
++    </section><!--/#bottom-->
++
++    <footer id="footer" class="midnight-blue">
++        <div class="container">
++            <div class="row">
++                  <div class="col-sm-6">
++                    &copy; 2016 <a target="_blank" href="http://comicbuzz.com/" title="Create some comics">ComicBuzz</a>. All Rights Reserved.
++                </div>
++                <div class="col-sm-6">
++                    <ul class="pull-right">
++                        <li><a href="#">Home</a></li>
++                        <li><a href="#">About Us</a></li>
++                        <li><a href="#">Faq</a></li>
++                        <li><a href="#">Contact Us</a></li>
++                    </ul>
++                </div>
++            </div>
++        </div>
++    </footer><!--/#footer-->
++
++    <script src="/js/jquery.js"></script>
++    <script src="/js/bootstrap.min.js"></script>
++    <script src="/js/jquery.prettyPhoto.js"></script>
++    <script src="/js/jquery.isotope.min.js"></script>
++    <script src="/js/main.js"></script>
++    <script src="/js/wow.min.js"></script>
++</body>
++</html>
+\ No newline at end of file
+diff --git a/src/views/signup.html b/src/views/signup.html
+deleted file mode 100644
+index 758b437..0000000
+--- a/src/views/signup.html
++++ /dev/null
+@@ -1,269 +0,0 @@
+-<!DOCTYPE html>
+-<html lang="en">
+-<head>
+-    <meta charset="utf-8">
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <meta name="description" content="">
+-    <meta name="author" content="">
+-    <title>Register | ComicBuzz</title>
+-	<!-- core CSS -->
+-    <link href="/css/bootstrap.min.css" rel="stylesheet">
+-    <link href="/css/font-awesome.min.css" rel="stylesheet">
+-    <link href="/css/animate.min.css" rel="stylesheet">
+-    <link href="/css/prettyPhoto.css" rel="stylesheet">
+-    <link href="/css/main.css" rel="stylesheet">
+-    <link href="/css/responsive.css" rel="stylesheet">
+-    <!--[if lt IE 9]>
+-    <script src="../js/html5shiv.js"></script>
+-    <script src="../js/respond.min.js"></script>
+-    <![endif]-->       
+-    <link rel="shortcut icon" href="/images/ico/favicon.ico">
+-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/ico/apple-touch-icon-144-precomposed.png">
+-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
+-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
+-    <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
+-</head><!--/head-->
+-<body>
+-
+-    <header id="header">
+-        <div class="top-bar">
+-            <div class="container">
+-                <div class="row">
+-                    <div class="col-sm-6 col-xs-4">
+-                        <div class="top-number"><p><i class="fa fa-phone-square"></i>  +778 384 9877</p></div>
+-                    </div>
+-                    <div class="col-sm-6 col-xs-8">
+-                       <div class="social">
+-                            <ul class="social-share">
+-                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+-                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+-                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li> 
+-                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+-                                <li><a href="#"><i class="fa fa-skype"></i></a></li>
+-                            </ul>
+-                            <div class="search">
+-                                <form role="form">
+-                                    <input type="text" class="search-form" autocomplete="off" placeholder="Search">
+-                                    <i class="fa fa-search"></i>
+-                                </form>
+-                           </div>
+-                       </div>
+-                    </div>
+-                </div>
+-            </div><!--/.container-->
+-        </div><!--/.top-bar-->
+-
+-      <nav class="navbar navbar-inverse" role="banner">
+-            <div class="container">
+-                <div class="navbar-header">
+-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+-                        <span class="sr-only">Toggle navigation</span>
+-                        <span class="icon-bar"></span>
+-                        <span class="icon-bar"></span>
+-                        <span class="icon-bar"></span>
+-                    </button>
+-                    <a class="navbar-brand" href="/"><img src="/images/logo.png" alt="logo"></a>
+-                </div>
+-                
+-                <div class="collapse navbar-collapse navbar-right">
+-                    <ul class="nav navbar-nav">
+-                        <li><a href="/index">Home</a></li>
+-                        <li><a href="/about-us">About Us</a></li>
+-                        <li><a href="/topcomics">Top Comics</a></li>
+-                        <!--<li><a href="tagsearch.html">Tags</a></li>-->
+-                        
+-                        
+-                        <li class="dropdown">
+-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <i class="fa fa-angle-down"></i></a>
+-                            <ul class="dropdown-menu">
+-                                <li><a href="/usercomics">My Comics</a></li>
+-                                <li><a href="/upload">Upload</a></li>
+-                                <li><a href="/settings">Account Settings</a></li>
+-                                <li><a href="/userlist">View Other Users' Profile Page</a></li>
+-                            </ul>
+-                        </li>
+-                        
+-                        
+-                        <li><a href="/contact-us">Contact</a></li>   
+-                        
+-                         
+-                        
+-                    
+-                           {% if (req.isAuthenticated()) %}
+-        <li class="{% if (isActive('/users/' + req.user.id )) %}active{% endif %}">
+-         <a href="{{ 'index' + req.user.id }}" title="{{ req.user.username }}">{{ req.user.username }}</a>
+-          </li>
+-          <li>
+-            <a href="/logout" title="logout">Logout</a>
+-          </li>
+-        {% else %}
+-          <li class="{% if (isActive('/login')) %}active{% endif %}">
+-             <li class="active"><a href="/login" title="Login">Login</a>
+-          </li>
+-        {% endif %}
+-                                             
+-                    </ul>
+-                </div>
+-            </div><!--/.container-->
+-        </nav><!--/nav-->
+-        
+-    </header><!--/header-->
+-
+-  <div class="container">
+-
+-<div class="row">
+-    <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
+-        <form action="/users" method="post" role="form">
+-            <h2>Please Sign Up <small>It's free! (For now...)</small></h2>
+-            <hr class="colorgraph">
+-            <div class="row">
+-                <div class="col-xs-12 col-sm-6 col-md-6">
+-                    <div class="form-group">
+-                        <input id="name" class="form-control" type="text" name="name" placeholder="Full name"  tabindex="1" value="{{ user.name }}">
+-                        <!--<input type="text" name="first_name" id="first_name" class="form-control input-lg" placeholder="Full Name" tabindex="1">-->
+-                    </div>
+-                </div>
+-                <div class="col-xs-12 col-sm-6 col-md-6">
+-                    <div class="form-group">
+-                        <input id="username" class="form-control" type="text" name="username" placeholder="Username" value="{{ user.username }}" tabindex="2">
+-                     
+-                    </div>
+-                </div>
+-            </div>
+-           
+-            <div class="form-group">
+-                <input type="text" name="email" placeholder="Email" value="{{ user.email }}" id="email" class="form-control" tabindex="3">
+-               <!-- <input type="email" name="email" id="email" class="form-control input-lg" placeholder="Email Address" tabindex="4">-->
+-            </div>
+-            <div class="row">
+-                <div class="col-xs-12 col-sm-6 col-md-6">
+-                    <div class="form-group">
+-                        <input id="password" class="form-control" type="password" name="password" placeholder="Password" tabindex="4">
+-                       <!-- <input type="password" name="password" id="password" class="form-control input-lg" placeholder="Password" tabindex="5">-->
+-                    </div>
+-                </div>
+-                <div class="col-xs-12 col-sm-6 col-md-6">
+-                    
+-                </div>
+-            </div>
+-            <div class="row">
+-                <div class="col-xs-4 col-sm-3 col-md-3">
+-                    <span class="button-checkbox">
+-                       
+-                    </span>
+-                </div>
+-                
+-            </div>
+-            
+-            <div class="form-group">
+-      <div class="col-sm-offset-2 col-sm-10">
+-        <button class="btn btn-primary" type="submit">Sign up</button>
+-       
+-        <a href="/login" class="show-login">Log in</a>
+-      </div>
+-            
+-           <!-- <hr class="colorgraph">
+-            <div class="row">
+-                <div class="col-xs-12 col-md-6"><input type="submit" value="Register" class="btn btn-primary btn-block btn-lg" tabindex="7"></div>
+-                <div class="col-xs-12 col-md-6"><a href="/login" class="btn btn-success btn-block btn-lg">Sign Up</a></div>
+-            </div>-->
+-        </form>
+-    </div>
+-</div>
+-
+-<!-- Modal -->
+-<div class="modal fade" id="t_and_c_m" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+-    <div class="modal-dialog modal-lg">
+-        <div class="modal-content">
+-            <div class="modal-header">
+-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+-                <h4 class="modal-title" id="myModalLabel">Terms & Conditions</h4>
+-            </div>
+-            <div class="modal-body">
+-                <p>WE</p>
+-                <p>DON'T</p>
+-                <p>GIVE</p>
+-                <p>A</p>
+-                <p>SH!T</p>
+-            </div>
+-            <div class="modal-footer">
+-                <button type="button" class="btn btn-primary" data-dismiss="modal">I Agree</button>
+-            </div>
+-        </div><!-- /.modal-content -->
+-    </div><!-- /.modal-dialog -->
+-</div><!-- /.modal -->
+-</div>
+-    <section id="bottom">
+-        <div class="container wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms">
+-            <div class="row">
+-                <div class="col-md-3 col-sm-6">
+-                    <div class="widget">
+-                        <h3>Company</h3>
+-                        <ul>
+-                            <li><a href="#">About us</a></li>
+-                            <li><a href="#">Meet the team</a></li>
+-                            <li><a href="#">Copyright</a></li>
+-                            <li><a href="#">Terms of use</a></li>
+-                            <li><a href="#">Privacy policy</a></li>
+-                            <li><a href="#">Contact us</a></li>
+-                        </ul>
+-                    </div>    
+-                </div><!--/.col-md-3-->
+-
+-                <div class="col-md-3 col-sm-6">
+-                    <div class="widget">
+-                        <h3>Support</h3>
+-                        <ul>
+-                            <li><a href="#">Faq</a></li>
+-                            <li><a href="#">Blog</a></li>
+-                            <li><a href="#">Forum</a></li>
+-                            <li><a href="#">Documentation</a></li>
+-                        </ul>
+-                    </div>    
+-                </div><!--/.col-md-3-->
+-
+-                <div class="col-md-3 col-sm-6">
+-                    <div class="widget">
+-                        <h3>Developers</h3>
+-                        <ul>
+-                            <li><a href="#">Web Development</a></li>
+-                            <li><a href="#">Theme</a></li>
+-                            <li><a href="#">Development</a></li>
+-                            <li><a href="#">Plugin Development</a></li>
+-                            <li><a href="#">Article Writing</a></li>
+-                        </ul>
+-                    </div>    
+-                </div><!--/.col-md-3-->
+-
+-                <div class="col-md-3 col-sm-6">                   
+-                </div><!--/.col-md-3-->
+-            </div>
+-        </div>
+-    </section><!--/#bottom-->
+-
+-    <footer id="footer" class="midnight-blue">
+-        <div class="container">
+-            <div class="row">
+-                  <div class="col-sm-6">
+-                    &copy; 2016 <a target="_blank" href="http://comicbuzz.com/" title="Create some comics">ComicBuzz</a>. All Rights Reserved.
+-                </div>
+-                <div class="col-sm-6">
+-                    <ul class="pull-right">
+-                        <li><a href="#">Home</a></li>
+-                        <li><a href="#">About Us</a></li>
+-                        <li><a href="#">Faq</a></li>
+-                        <li><a href="#">Contact Us</a></li>
+-                    </ul>
+-                </div>
+-            </div>
+-        </div>
+-    </footer><!--/#footer-->
+-
+-    <script src="/js/jquery.js"></script>
+-    <script src="/js/bootstrap.min.js"></script>
+-    <script src="/js/jquery.prettyPhoto.js"></script>
+-    <script src="/js/jquery.isotope.min.js"></script>
+-    <script src="/js/main.js"></script>
+-    <script src="/js/wow.min.js"></script>
+-</body>
+-</html>
+\ No newline at end of file
+diff --git a/src/views/usercomics.html b/src/views/usercomics.html
+index 70f56e1..70d34c3 100644
+--- a/src/views/usercomics.html
++++ b/src/views/usercomics.html
+@@ -22,13 +22,7 @@
+     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
+     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
+     <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
+-</head>
+-
+-#section {
+-    width:350px;
+-    float:left;
+-    padding:10px;	 	 
+-}
++</head><!--/head-->
+ <body>
+ 
+     <header id="header">
+@@ -120,9 +114,9 @@
+                <p class="lead"></p>
+             </div>
+             
+-            <div id="section">
++            
+              {% for article in pulished_articles %}
+-              <h2>View  My Published Comics</h2>
++              <h3>View  My Pusblised Comics</h2>
+                 <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                     <div class="recent-work-wrap">
+                         <img id="{{article._id}}" class="img-responsive comic-image" src="{{article.cells[0].ImageURL}}" alt="">
+@@ -145,11 +139,8 @@
+                     </div>
+                 </div>
+             {% endfor %}
+-            </div>
+-            <div id="section">
+-            <div> 
+-                        {% for article in unpublished_articles %}
+-              <h2>View  My Unpublished Comics</h2>
++                        {% for article in unpulished_articles %}
++              <h2>View  My unpusblised Comics</h2>
+                 <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                     <div class="recent-work-wrap">
+                         <img id="{{article._id}}" class="img-responsive comic-image" src="{{article.cells[0].ImageURL}}" alt="">
+@@ -172,8 +163,6 @@
+                     </div>
+                 </div>
+             {% endfor %}
+-            </div>
+-            </div>
+  <!--     
+   <h3>
+     <a href="{{ '/comics/' + article._id }}" title="{{ article.title }}">{{ article.title }}
+@@ -380,7 +369,7 @@
+                         </div>
+                     </div>-->
+             </div>
+-        </div>
++        </div>-->
+                   
+ 
+     </section><!--/#portfolio-item-->

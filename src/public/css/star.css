@@ -1,0 +1,9 @@
+.colorStarred {
+	background-color: orange;
+}
+
+.btn {
+	background-image: none;
+	color: #666666;
+	margin: 2px;
+}

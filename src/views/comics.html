@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Top Comics | ComicBuzz</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/prettyPhoto.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
+    <link href="/css/responsive.css" rel="stylesheet">    
+    <link rel="shortcut icon" href="/images/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
+</head>
+
+    <body>
+     <header id="header">
+        <div class="top-bar">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6 col-xs-4">
+                        <div class="top-number"><p><i class="fa fa-phone-square"></i>778 867 5309</p></div>
+                    </div>
+                    <div class="col-sm-6 col-xs-8">
+                       <div class="social">
+                            <ul class="social-share">
+                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li> 
+                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+                                <li><a href="#"><i class="fa fa-skype"></i></a></li>
+                            </ul>
+
+   
+              <form name="searchForm" action="/comics/search" method="post">
+             <p><input type="search" name="content" placeholder="Search">
+            <input type="submit" value="Search"></p>
+            </form>  
+                       </div>
+                    </div>
+                </div>
+            </div><!--/.container-->
+        </div><!--/.top-bar-->
+
+        <nav class="navbar navbar-inverse" role="banner">
+            <div class="container">
+                <div class="navbar-header">
+                    <!--<form>
+                                <input type="text" placeholder="Search..." required>
+                                <input type="button" value="Search">
+                    </form>-->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/"><img src="/images/logo.png" alt="logo"></a>
+                </div>
+				
+                <div class="collapse navbar-collapse navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/index">Home</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/topcomics">Recent Comics</a></li>
+                        
+                        <!--<li><a href="/tagsearch">Tags</a></li>-->
+                        
+                        
+                        <!-- <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <i class="fa fa-angle-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/usercomics">My Comics</a></li>                               
+                                <li><a href="/settings">Account Settings</a></li>
+                            </ul>
+                        </li>-->
+                        
+                        <li><a href="/userlist">Userlist</a></li>                        
+                        
+                        {% if (req.isAuthenticated()) %}
+                        <li class="{% if (isActive('/users/' + req.user.id )) %}active{% endif %}">
+                            <a href="{{ '/users/' + req.user.id }}" title="{{ req.user.username }}">Hello, {{req.user.username}}</a>
+                        </li>
+                        <li><a href="/upload">Upload</a></li>
+                        <li>
+                            <a href="/logout" title="logout">Logout</a>
+                        </li>
+                        {% else %}
+                        <li class="{% if (isActive('/login')) %}active{% endif %}">
+                            <a href="/login" title="Login">Login</a>
+                        </li>
+                        {% endif %}
+                             
+                    </ul>
+                </div>
+            </div><!--/.container-->
+        </nav><!--/nav-->
+		
+    </header><!--/header-->
+
+    <section id="viewer">
+        <div class="embed-container">
+            <div class="comic-item col-xs-12 col-sm-8 col-sm-offset-2 col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
+                <span class="comic-title col-md-6">
+                    <h3>Title: {{ article.title }}
+                    <span class="comic-authors col-md-6" style="float:right">
+                        {% if (article.user) %}
+                            Author: &nbsp;
+                            <a href="{{ '/users/' + article.user._id }}">
+                                {{ article.user.name || article.user.username }}
+                            </a>
+                        {% endif %}
+                    </span></h3>
+                </span>
+
+                <div class="comic-img col-md-12" align="center">
+                    <div id="images">
+                        {% for image in myCells %}
+                        <div></div>
+                        <img src="{{image.ImageURL}}"></img>
+                        <div></div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="comic-description" align = "center">
+                        <br>
+                        <br>
+                        <p id="Description"><h3>Description:</h3>{{ article.body }}</p>
+                    
+                    <div class="comic-tags" align ="center">
+                        {% if (display_tags) %}
+                      
+                            <p>
+                                Tags: &nbsp;
+                                {% for tag in display_tags %}
+                                
+                                <i class="muted fa fa-tag"></i>&nbsp;
+                                <a href="{{ '/tags/' + tag }}" class="tag">{{ tag }}</a>
+                                &nbsp;&nbsp;
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <span class="muted">{{ article.createdAt.toISOString()|date('M d, Y  h:i a') }}</span>
+                            <form method="post"  action="{{ '/comics/' + article.id +'/likeit' }}"  role="form">
+                            <input type="hidden" name="_csrf" value="Wankq4yt-bHSA4O59sYYyQaboNcK4RwmU0co">
+                            {% if flag == 1  %}
+                            <button id = "button2"class="btn btn-default" type="submit">Like it</button>
+                            {% endif %}
+                            {% if flag == 2  %}
+                            <button id = "button2"class="btn btn-warning" type="submit">Liked</button>
+                            {% endif %}
+                            </form>
+
+                            <form method="post" onsubmit="return confirm('Published')" action="{{ '/comics/' + article.id +'/publish' }}"  role="form">
+                            <input type="hidden" name="_csrf" value="Wankq4yt-bHSA4O59sYYyQaboNcK4RwmU0co">
+                            <!--<button id = "button1"class="btn btn-primary" type="submit" onclick="alert('Are you sure to publish?')" value =  ""></button>-->
+                            {% if article.published == 2  %}
+                            <button id = "button2"class="btn btn-success disabled ">Published</button>
+                            {% endif %}
+                            {% if article.published == 1  %}
+                            <button id = "button2"class="btn btn-primary" type="submit">Publish</button>
+                            {% endif %}
+                            </form>
+                            <form role="form" method="get" action="{{ '/testpage/' + article.id }}"  class="form-inline">
+                            <input type="hidden" name="_csrf" value="vVxoGNqq-NI2xYx_7KK1emp2hIUVXfLrER5k">
+                            <input type="hidden" name="_method" value="EDIT">
+                            {% if article.published == 2  %}
+                            <button id = "button3"class="btn btn-success disabled ">Edit Disable</button>
+                            {% endif %}
+                            {% if article.published == 1  %}
+                            <button id = "button3" onclick =  class="btn btn-warning btn-lg" type="submit">Edit</button>
+                            {% endif %}
+                            </form>
+                           
+
+                            <form role="form" method="post" action="{{ '/comics/' + article.id +'/delete' }}" onsubmit="return confirm('Are you sure?')" class="form-inline">
+                            <input type="hidden" name="_csrf" value="vVxoGNqq-NI2xYx_7KK1emp2hIUVXfLrER5k">
+                            <input type="hidden" name="_method" value="DELETE">
+                            {% if article.published == 2  %}
+                            <button id = "button3"class="btn btn-success disabled ">Delete Disable</button>
+                            {% endif %}
+                            {% if article.published == 1  %}
+                            <button id = "button3" onclick =  class="btn btn-primary" type="submit">Delete</button>
+                            {% endif %}
+                            </form>
+  </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="bottom">
+        <div class="container wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms">
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About us</a></li>
+                            <li><a href="#">Meet the team</a></li>
+                            <li><a href="#">Copyright</a></li>
+                            <li><a href="#">Terms of use</a></li>
+                            <li><a href="#">Privacy policy</a></li>
+                            <li><a href="#">Contact us</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="#">Faq</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Forum</a></li>
+                            <li><a href="#">Documentation</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Developers</h3>
+                        <ul>
+                            <li><a href="#">Web Development</a></li>
+                            <li><a href="#">Theme</a></li>
+                            <li><a href="#">Development</a></li>
+                            <li><a href="#">Plugin Development</a></li>
+                            <li><a href="#">Article Writing</a></li>
+                        </ul>
+                    </div>    
+                </div>
+
+                <div class="col-md-3 col-sm-6">                   
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="footer" class="midnight-blue">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    &copy; 2016 <a target="_blank" href="http://comicbuzz.com/" title="Create some comics">ComicBuzz</a>. All Rights Reserved.
+                </div>
+                <div class="col-sm-6">
+                    <ul class="pull-right">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Faq</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="text/javascript">
+    var parent    = document.getElementById('images'),
+    imagePath = '/uploads/',
+    img;
+    
+    for (var i = 0; i < images.length ; i++) 
+    {
+        img = new Image();
+        img.src = images[i];
+        parent.appendChild(img);
+    }
+
+    </script>
+
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.prettyPhoto.js"></script>
+    <script src="/js/jquery.isotope.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/wow.min.js"></script>
+    
+    </body>
+</html>

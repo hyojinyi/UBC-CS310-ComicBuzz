@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title> My comic books | ComicBuzz</title>
+	<!-- core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/prettyPhoto.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
+    <link href="/css/responsive.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <script src="../js/html5shiv.js"></script>
+    <script src="../js/respond.min.js"></script>
+    <![endif]-->       
+    <link rel="shortcut icon" href="/images/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/images/ico/apple-touch-icon-57-precomposed.png">
+</head>
+
+#section {
+    width:350px;
+    float:left;
+    padding:10px;	 	 
+}
+<body>
+
+    <header id="header">
+        <div class="top-bar">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6 col-xs-4">
+                        <div class="top-number"><p><i class="fa fa-phone-square"></i>  +778 384 9877</p></div>
+                    </div>
+                    <div class="col-sm-6 col-xs-8">
+                       <div class="social">
+                            <ul class="social-share">
+                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li> 
+                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+                                <li><a href="#"><i class="fa fa-skype"></i></a></li>
+                            </ul>
+                            <div class="search">
+                                <form role="form">
+                                    <input type="text" class="search-form" autocomplete="off" placeholder="Search">
+                                    <i class="fa fa-search"></i>
+                                </form>
+                           </div>
+                       </div>
+                    </div>
+                </div>
+            </div><!--/.container-->
+        </div><!--/.top-bar-->
+
+        <nav class="navbar navbar-inverse" role="banner">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/index"><img src="/images/logo.png" alt="logo"></a>
+                </div>
+				
+                <div class="collapse navbar-collapse navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <!--<li><a href="tagsearch.html">Tags</a></li>-->
+                        
+                        
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <i class="fa fa-angle-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/usercomics">My Comics</a></li>
+                                <li><a href="/upload">Upload</a></li>
+                                <li><a href="/settings">Account Settings</a></li>
+                                <li><a href="/userlist">View Other Users' Profile Page</a></li>
+                            </ul>
+                        </li>
+                        
+                        
+                        <li><a href="/contact">Contact</a></li>   
+                        
+                        	
+                        
+                           {% if (req.isAuthenticated()) %}
+          <li class="{% if (isActive('/users/' + req.user.id )) %}active{% endif %}">
+            <a href="{{ '/users/' + req.user.id }}" title="{{ req.user.username }}">{{ req.user.username }}</a>
+          </li>
+          <li>
+            <a href="/logout" title="logout">Logout</a>
+          </li>
+        {% else %}
+          <li class="{% if (isActive('/login')) %}active{% endif %}">
+            <a href="/login" title="Login">Login</a>
+          </li>
+        {% endif %}
+                        
+                                             
+                    </ul>
+                </div>
+            </div><!--/.container-->
+        </nav><!--/nav-->
+        
+    </header><!--/header-->
+    <section id="portfolio">
+        <div class="container">
+            <div class="center">
+               <h2>View MyComics</h2>
+               <p class="lead"></p>
+            </div>
+            
+            <div id="section">
+             {% for article in pulished_articles %}
+              <h2>View  My Published Comics</h2>
+                <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                    <div class="recent-work-wrap">
+                        <img id="{{article._id}}" class="img-responsive comic-image" src="{{article.cells[0].ImageURL}}" alt="">
+                        <h3><a href="{{ '/comics/' + article._id }}" title="{{ article.title }}" class="comic-title">{{ article.title }}</a></h3>
+                        <a id="{{ article._id }}" href="{{ '/comics/' + article._id }}" >
+                            <div class="overlay">
+                                <div class="recent-work-inner">                      
+                                    <p id="Description">{{ article.body }}</p>
+                                    {% if (article.user) %}
+                                        &nbsp; - &nbsp;
+                                        <span>Author: </span>
+                                        <a href="{{ '/users/' + article.user._id }}">
+                                        {{ article.user.name || article.user.username }}
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ '/comics/' + article._id }}"><p><i class="fa fa-eye"></i> Click to View</p></h>
+                                </div> 
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+            <div id="section">
+            <div> 
+                        {% for article in unpublished_articles %}
+              <h2>View  My Unpublished Comics</h2>
+                <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                    <div class="recent-work-wrap">
+                        <img id="{{article._id}}" class="img-responsive comic-image" src="{{article.cells[0].ImageURL}}" alt="">
+                        <h3><a href="{{ '/comics/' + article._id }}" title="{{ article.title }}" class="comic-title">{{ article.title }}</a></h3>
+                        <a id="{{ article._id }}" href="{{ '/comics/' + article._id }}" >
+                            <div class="overlay">
+                                <div class="recent-work-inner">                      
+                                    <p id="Description">{{ article.body }}</p>
+                                    {% if (article.user) %}
+                                        &nbsp; - &nbsp;
+                                        <span>Author: </span>
+                                        <a href="{{ '/users/' + article.user._id }}">
+                                        {{ article.user.name || article.user.username }}
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ '/comics/' + article._id }}"><p><i class="fa fa-eye"></i> Click to View</p></h>
+                                </div> 
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+            </div>
+ <!--     
+  <h3>
+    <a href="{{ '/comics/' + article._id }}" title="{{ article.title }}">{{ article.title }}
+    </a>
+  </h3>
+  <p>{{ article.body }}</p>
+
+  {% if (article.user) %}
+    &nbsp; - &nbsp;
+    <span>Author: </span>
+    <a href="{{ '/users/' + article.user._id }}">
+      {{ article.user.name || article.user.username }}
+    </a>
+  {% endif %}
+
+  {% if (article.tags) %}
+    &nbsp; - &nbsp;
+    <span>Tags: </span>
+    {% for tag in article.tags.split(',') %}
+      <i class="muted fa fa-tag"></i>&nbsp;
+      <a href="{{ '/tags/' + tag }}" class="tag">{{ tag }}</a>
+      &nbsp;&nbsp;
+    {% endfor %}
+  {% endif %}
+</div>
+            -->
+        
+
+            <!--<ul class="portfolio-filter text-center">
+                <li><a class="btn btn-default active" href="#" data-filter="*">All Works</a></li>
+                <li><a class="btn btn-default" href="#" data-filter=".bootstrap">Single Cells</a></li>
+                <li><a class="btn btn-default" href="#" data-filter=".html">Multi Cell</a></li>
+                <li><a class="btn btn-default" href="#" data-filter=".wordpress">All Time</a></li>
+            </ul><!--/#portfolio-filter-->
+
+            <!--<div class="row">
+                <div class="portfolio-items">                
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell0" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title0"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic0" href="/comics" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description0">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                  <!-- <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell1" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title1"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic1" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description1">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell2" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title2"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic2" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description2">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell3" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title3"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic3" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description3">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell4" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title4"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic4" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description4">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell5" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title5"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic5" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description5">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell6" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title6"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic6" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description6">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell7" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title7"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic7" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description7">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell8" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title8"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic8" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description8">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell9" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title9"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic9" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description9">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell10" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title10"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic10" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description10">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="portfolio-item apps comic-item col-xs-12 col-sm-4 col-md-3">
+                        <div class="recent-work-wrap">
+                            <img id="Cell11" class="img-responsive comic-image" src="/images/tab2.png" alt="">
+                            <h3 id="Title11"><a href="#" class="comic-title">Filler Title</a></h3>
+                            <a id="Comic11" class="preview" href="/images/tab2.png" rel="prettyPhoto">
+                                <div class="overlay">
+                                    <div class="recent-work-inner">                      
+                                        <p id="Description11">Filler Description</p>
+                                        <p><i class="fa fa-eye"></i> Click to View</p>
+                                    </div> 
+                                </div>
+                            </a>
+                        </div>
+                    </div>-->
+            </div>
+        </div>
+                  
+
+    </section><!--/#portfolio-item-->
+    
+    <section id="bottom">
+        <div class="container wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms">
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About us</a></li>
+                            <li><a href="#">Meet the team</a></li>
+                            <li><a href="#">Copyright</a></li>
+                            <li><a href="#">Terms of use</a></li>
+                            <li><a href="#">Privacy policy</a></li>
+                            <li><a href="#">Contact us</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="#">Faq</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Forum</a></li>
+                            <li><a href="#">Documentation</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="widget">
+                        <h3>Developers</h3>
+                        <ul>
+                            <li><a href="#">Web Development</a></li>
+                            <li><a href="#">Theme</a></li>
+                            <li><a href="#">Development</a></li>
+                            <li><a href="#">Plugin Development</a></li>
+                            <li><a href="#">Article Writing</a></li>
+                        </ul>
+                    </div>    
+                </div><!--/.col-md-3-->
+
+                <div class="col-md-3 col-sm-6">                   
+                </div><!--/.col-md-3-->
+            </div>
+        </div>
+    </section><!--/#bottom-->
+
+    <footer id="footer" class="midnight-blue">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    &copy; 2016 <a target="_blank" href="http://comicbuzz.com/" title="Create some comics">ComicBuzz</a>. All Rights Reserved.
+                </div>
+                <div class="col-sm-6">
+                    <ul class="pull-right">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Faq</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer><!--/#footer-->
+
+    <script src="../models/bookModel.js"></script>
+    <script></script>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.prettyPhoto.js"></script>
+    <script src="/js/jquery.isotope.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/wow.min.js"></script>
+</body>
+
+</html>
