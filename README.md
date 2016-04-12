@@ -5,6 +5,7 @@
 
 App is now hosted at:            comicbuzz310.herokuapp.com
 ### Please view in full-screen ###
+### Note: This version of the project is not connected to a database; key must be connected in app.ts/js ###
 
 #### Contributors ####
 Team Buzzers - Abhi, Larry, Hyojin, Joel, Adrien
