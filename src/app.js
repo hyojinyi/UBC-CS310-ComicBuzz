@@ -16,7 +16,7 @@ var join = require('path').join;
 var config = require('./config/config');
 var models = join(__dirname, '/models');
 var port = process.env.PORT || 3000;
-var cloudinary = require('cloudinary');
+//var cloudinary = require('cloudinary');
 var compression = require('compression');
 var cookieSession = require('cookie-session');
 var methodOverride = require('method-override');
@@ -31,7 +31,7 @@ var env = process.env.NODE_ENV || 'development';
 /**
  * Expose
  */
-var mConnect = mongoose.connect('mongodb://thebuzzers:cs310project@ds059145.mongolab.com:59145/comicbuzzdb'); // connect to our database
+var mConnect = mongoose.connect('**** INSERT mLab KEY HERE **** '); // connect to our database
 console.log('=======================================');
 console.log('=============== mConnect =============');
 console.log('===============' + mConnect + '================');
@@ -84,7 +84,7 @@ app.use(session({
     saveUninitialized: true,
     secret: pkg.name,
     store: new mongoStore({
-        url: 'mongodb://thebuzzers:cs310project@ds059145.mongolab.com:59145/comicbuzzdb',
+        url: '**** INSERT mLab KEY HERE ****',
         collection: 'sessions'
     })
 }));
@@ -105,9 +105,9 @@ require('../src/config/passport')(passport);
 require('../src/config/express')(app, passport);
 require('../src/config/routes')(app, passport);*/
 // cloudinary ===================================================================
-cloudinary.config({
-    cloud_name: 'cs310project',
-    api_key: '174523219495379',
-    api_secret: 'Hkyna0fcP82cWAK910aDqpQ4ELg'
+// cloudinary.config({
+//     cloud_name: 'cs310project',
+//     api_key: '174523219495379',
+//     api_secret: 'Hkyna0fcP82cWAK910aDqpQ4ELg'
 });
 module.exports = app;
